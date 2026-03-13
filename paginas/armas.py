@@ -80,9 +80,12 @@ dps_por_cidade = {"Aparecida": ["DEL.POL.APARECIDA"], "Canas": ["DEL.POL.CANAS"]
 st.title("Gerador de Laudos - Armas e Munições")
 
 st.header("1. Cabeçalho e Identificação")
-colBO1, colBO2 = st.columns(2)
-with colBO1: bo_input = st.text_input("Número do BO:", placeholder="Ex: LT0644", key=f"bo_{mk}").upper()
-with colBO2: bo_ano = st.text_input("Ano do BO:", value="2026", max_chars=4, key=f"ano_{mk}")
+# NOVIDADE: Colunas para REP e BO
+colBO1, colBO2, colREP1, colREP2 = st.columns(4)
+with colBO1: bo_input = st.text_input("Nº BO:", placeholder="Ex: LT0644", key=f"bo_{mk}").upper()
+with colBO2: bo_ano = st.text_input("Ano BO:", value="2026", max_chars=4, key=f"ano_{mk}")
+with colREP1: rep_input = st.text_input("Nº REP:", placeholder="Ex: 1234", key=f"rep_{mk}").upper()
+with colREP2: rep_ano = st.text_input("Ano REP:", value="2026", max_chars=4, key=f"rep_ano_{mk}")
 
 data_selecionada = st.date_input("Data do Laudo:", format="DD/MM/YYYY", key=f"data_{mk}")
 meses = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto', 9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
@@ -229,7 +232,7 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
         st.rerun()
 
 # ==========================================
-# 4. FOTOGRAFIAS (IDÊNTICO AOS ANTERIORES)
+# 4. FOTOGRAFIAS 
 # ==========================================
 st.markdown("---")
 st.header("4. Fotografias")
@@ -321,7 +324,6 @@ if len(st.session_state['itens_balistica']) > 0:
             texto_exames_gerado += "\n"
         contador_lacre += 1
 
-# Campos de edição livres!
 objetivo_final = st.text_area("Objetivo da Perícia (Editável):", value=texto_obj_default, height=68)
 exames_final = st.text_area("Corpo dos Exames (Editável):", value=texto_exames_gerado, height=400)
 
@@ -357,14 +359,19 @@ if st.button("Criar Laudo (.docx)", type="primary", use_container_width=True):
     p_right = table.cell(0, 2).paragraphs[0]; p_right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     if os.path.exists("logo_ic.png"): p_right.add_run().add_picture("logo_ic.png", width=Cm(1.8))
 
-    if bo_input:
-        p_bo = doc.add_paragraph()
-        p_bo.add_run(f"BO {bo_input.upper()} / {bo_ano} - {delegacia_selecionada}")
-        p_bo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # NOVIDADE: Lógica para incluir BO e REP no documento
+    if rep_input or bo_input:
+        p_id = doc.add_paragraph()
+        texto_id = []
+        if rep_input: texto_id.append(f"REP {rep_input.upper()} / {rep_ano}")
+        if bo_input: texto_id.append(f"BO {bo_input.upper()} / {bo_ano}")
+        
+        p_id.add_run(" - ".join(texto_id) + f" - {delegacia_selecionada}")
+        p_id.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # CORPO
     p_nat = doc.add_paragraph()
-    run = p_nat.add_run("1 – NATUREZA: Exame em Arma de Fogo"); run.bold = True; run.font.size = Pt(14)
+    run = p_nat.add_run("1 – NATUREZA: Exame em Arma de Fogo / Munições / Estojos / Projéteis"); run.bold = True; run.font.size = Pt(14)
     adicionar_borda_inferior(p_nat)
     
     preambulo = (f"Aos {data_extenso}, no Instituto de Criminalística, da Superintendência da Polícia Técnico-Científica, "
@@ -383,7 +390,6 @@ if st.button("Criar Laudo (.docx)", type="primary", use_container_width=True):
     run_ex = p_ex.add_run("3 – DOS EXAMES:"); run_ex.bold = True; run_ex.font.size = Pt(14)
     adicionar_borda_inferior(p_ex)
 
-    # Lógica que lê o texto editado e transforma os ** em negrito no Word
     for linha in exames_final.split('\n'):
         if not linha.strip():
             doc.add_paragraph()
@@ -439,5 +445,13 @@ if st.button("Criar Laudo (.docx)", type="primary", use_container_width=True):
     p_cargo.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     buf_doc = io.BytesIO(); doc.save(buf_doc); buf_doc.seek(0)
-    nome_arquivo = f"Laudo_Balistica_BO_{bo_input}_{bo_ano}.docx" if bo_input else "Laudo_Balistica_Sem_BO.docx"
+    
+    # NOVIDADE: Nome do arquivo priorizando a REP
+    if rep_input:
+        nome_arquivo = f"Laudo_Balistica_REP_{rep_input}_{rep_ano}.docx"
+    elif bo_input:
+        nome_arquivo = f"Laudo_Balistica_BO_{bo_input}_{bo_ano}.docx"
+    else:
+        nome_arquivo = "Laudo_Balistica_Sem_BO_REP.docx"
+        
     st.download_button("⬇️ Descarregar Laudo Final", buf_doc, nome_arquivo, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
