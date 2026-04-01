@@ -82,7 +82,7 @@ meses = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'j
 data_extenso = f"{data_selecionada.day} de {meses[data_selecionada.month]} de {data_selecionada.year}"
 
 objetivos_selecionados = st.multiselect("Objetivo da Perícia:", ["Vistoria", "Fotografação", "Constatação de Danos", "Verificação dos Sistemas de Segurança", "Adulteração de Sinais Identificadores"], default=["Vistoria", "Constatação de Danos"], key=f"obj_{mk}")
-perito_selecionado = st.selectbox("Perito Criminal:", peritos, index=peritos.index("Claude Thiago Arrabal"), key=f"per_{mk}")
+perito_selecionado = st.selectbox("Perito Criminal:", peritos, index=peritos.index("Alexandre Rabello de Oliveira"), key=f"per_{mk}")
 
 del_sel = st.selectbox("Autoridade Policial:", delegados, index=delegados.index("Adilson Antonio Marcondes dos Santos") if "Adilson Antonio Marcondes dos Santos" in delegados else 0, key=f"del_sel_{mk}")
 if del_sel == "Outro...":
