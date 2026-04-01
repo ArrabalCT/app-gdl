@@ -64,4 +64,4 @@ with c2:
     if st.button("📦 Outras Peças", use_container_width=True): st.switch_page("paginas/outras_pecas.py")
 
 st.markdown("---")
-st.info("💡 Vistoria, Celular prontas. Armas e munições tbm, mas não testei todos os campos . Use a barra lateral para navegar. Dúvidas e Sugestões no Zap")
+st.info("💡 Vistoria, Celular prontas. Armas e munições tbm, mas não testei todos os campos . Use a barra lateral para navegar. Dúvidas e Sugestões no Zap 12981287819")
