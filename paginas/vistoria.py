@@ -52,9 +52,11 @@ def adicionar_campo_numpages(paragraph):
     r5.append(fldChar3)
     p.append(r5)
 
+# --- Configuração da Página ---
+st.set_page_config(page_title="Vistoria - GTA", page_icon="📋", layout="centered")
+
 # --- Variáveis de Sessão ---
 if 'fotos' not in st.session_state: st.session_state['fotos'] = []
-if 'camera_key' not in st.session_state: st.session_state['camera_key'] = 0 
 if 'mk' not in st.session_state: st.session_state['mk'] = 0 
 
 mk = st.session_state['mk']
@@ -123,7 +125,6 @@ with colV2:
     cor = st.text_input("Qual cor?", key=f"cdig_{mk}") if cor_sel == "Outra..." else cor_sel
 
 st.header("3. Constatações")
-# Listas padrão de peças organizadas por região
 pecas_padrao = {
     "Dianteira": ["Para-choque", "Grade", "Emblema", "Capô", "Farol Esquerdo", "Farol Direito", "Para-lama Esquerdo", "Para-lama Direito", "Para-brisa", "Placa Dianteira"],
     "Traseira": ["Para-choque", "Tampa do Porta-malas", "Lanterna Esquerda", "Lanterna Direita", "Vidro Traseiro", "Placa Traseira"],
@@ -145,14 +146,11 @@ for regiao, lista in pecas_padrao.items():
         st.markdown(f"**Detalhes: {peca}**")
         c1, c2, c3 = st.columns(3)
         with c1: 
-            t = st.multiselect("Dano:", ["Amolgamento", "Fratura", "Atritamento", "Quebra"], 
-                               key=f"t_{peca}_{regiao}_{mk}")
+            t = st.multiselect("Dano:", ["Amolgamento", "Fratura", "Atritamento", "Quebra"], key=f"t_{peca}_{regiao}_{mk}")
         with c2: 
-            o = st.multiselect("Sentido:", ["Da frente para trás", "De trás para a frente", "Da esquerda para a direita", "Da direita para a esquerda", "De cima para baixo", "De baixo para cima", "De fora para dentro", "De dentro para fora"], 
-                               key=f"o_{peca}_{regiao}_{mk}")
+            o = st.multiselect("Sentido:", ["Da frente para trás", "De trás para a frente", "Da esquerda para a direita", "Da direita para a esquerda", "De cima para baixo", "De baixo para cima", "De fora para dentro", "De dentro para fora"], key=f"o_{peca}_{regiao}_{mk}")
         with c3: 
-            a = st.multiselect("Altura:", ["Terço superior", "Terço médio", "Terço inferior"], 
-                               key=f"a_{peca}_{regiao}_{mk}")
+            a = st.multiselect("Altura:", ["Terço superior", "Terço médio", "Terço inferior"], key=f"a_{peca}_{regiao}_{mk}")
         regioes_detalhes[regiao][peca] = {"tipo": t, "ori": o, "alt": a}
     
 st.markdown("##### Componentes Adicionais")
@@ -212,29 +210,13 @@ st.header("4. Edição e Word")
 st.warning("⚠️ Pode digitar diretamente na caixa abaixo. No entanto, deixe as edições manuais para o **FINAL**. Se alterar as opções em cima, o sistema irá recriar a frase e apagar as suas edições!")
 texto_final = st.text_area("Texto final que vai para o Laudo:", height=300, key=f"edit_{mk}")
 
-# Fotos
-foto = st.camera_input("Tirar fotografia", key=f"cam_{st.session_state['camera_key']}")
-if foto:
-    colA, colR = st.columns(2)
-    with colA:
-        if st.button("✅ ACEITAR FOTO", type="primary", use_container_width=True):
-            img = Image.open(io.BytesIO(foto.getvalue()))
-            # Adicionado um "nome" provisório para a foto da câmera
-            st.session_state['fotos'].append({'img': ImageOps.exif_transpose(img), 'nome': f"cam_{st.session_state['camera_key']}"})
-            st.session_state['camera_key'] += 1
-            st.rerun()
-    with colR:
-        if st.button("❌ REJEITAR", use_container_width=True):
-            st.session_state['camera_key'] += 1
-            st.rerun()
+# Upload de Fotos
+st.header("5. Fotografias")
+fotos_up = st.file_uploader("Carregar fotos (Galeria ou Câmera)", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True, key=f"up_{mk}")
 
-fotos_up = st.file_uploader("Ou carregue da galeria", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True, key=f"up_{mk}")
 if fotos_up:
-    # Verificação inteligente: pegamos os nomes das fotos que já subiram
     nomes_existentes = [f.get('nome') for f in st.session_state['fotos'] if 'nome' in f]
-    
     for f in fotos_up:
-        # Só adiciona se o nome do arquivo AINDA NÃO estiver na lista
         if f.name not in nomes_existentes:
             img = Image.open(io.BytesIO(f.getvalue()))
             st.session_state['fotos'].append({'img': ImageOps.exif_transpose(img), 'nome': f.name})
@@ -250,7 +232,7 @@ if st.session_state['fotos']:
                 st.rerun()
 
 # --- BOTÕES FINAIS ---
-st.header("5. Finalizar")
+st.header("6. Finalizar")
 c1, c2 = st.columns(2)
 
 with c1:
@@ -272,7 +254,6 @@ with c1:
         
         largura_lateral = Cm(2.2)
         largura_meio = Cm(11.1)
-
         table.columns[0].width = largura_lateral
         table.columns[1].width = largura_meio
         table.columns[2].width = largura_lateral
@@ -366,7 +347,6 @@ with c1:
 
 with c2:
     if st.button("🔄 Novo Veículo (Limpar Tudo)", type="secondary", use_container_width=True):
-        current_mk = st.session_state.get('mk', 0)
         st.session_state.clear()
-        st.session_state['mk'] = current_mk + 1
+        st.session_state['mk'] = mk + 1
         st.rerun()
