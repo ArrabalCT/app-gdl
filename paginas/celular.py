@@ -130,8 +130,12 @@ if cid_sel != "Selecione...":
 
 st.header("2. Cadeia de Custódia e Aparelhos")
 
-lacre_saida = st.text_input("Lacre de Saída (Envio para o NI):", key=f"lacre_saida_{mk}")
-qtd_aparelhos = st.number_input("Quantidade de Aparelhos:", min_value=1, max_value=20, value=1, key=f"qtd_{mk}")
+# Lacre e Qtd Lado a Lado
+colL1, colL2 = st.columns(2)
+with colL1:
+    lacre_saida = st.text_input("Lacre de Saída (Envio para o NI):", key=f"lacre_saida_{mk}")
+with colL2:
+    qtd_aparelhos = st.number_input("Quantidade de Aparelhos:", min_value=1, max_value=20, value=1, key=f"qtd_{mk}")
 
 dados_aparelhos = []
 
@@ -142,11 +146,9 @@ for i in range(qtd_aparelhos):
     col1, col2 = st.columns(2)
     with col1:
         tipo_opcoes = ["Smartphone", "Tablet", "Feature Phone", "Outro"]
-        # Smartphone pré selecionado
         tipo_sel = st.selectbox(f"Tipo (Item {i+1}):", tipo_opcoes, index=0, key=f"tipo_sel_{i}_{mk}")
         tipo_cel = st.text_input(f"Qual tipo? (Item {i+1})", key=f"tipo_dig_{i}_{mk}") if tipo_sel == "Outro" else tipo_sel
 
-        # Marca sem pré seleção
         marca_opcoes = ["Selecione..."] + sorted(["Motorola", "Samsung", "Apple", "Xiaomi", "LG", "Asus", "Nokia", "Positivo", "Realme", "Multilaser"]) + ["Outra"]
         marca_sel = st.selectbox(f"Marca (Item {i+1}):", marca_opcoes, index=0, key=f"marca_sel_{i}_{mk}")
         marca_cel = st.text_input(f"Qual marca? (Item {i+1})", key=f"marca_dig_{i}_{mk}") if marca_sel == "Outra" else marca_sel
@@ -154,32 +156,31 @@ for i in range(qtd_aparelhos):
         modelo_cel = st.text_input(f"Modelo (Item {i+1}):", key=f"mod_{i}_{mk}")
 
     with col2:
-        # Cor sem pré seleção
         cor_opcoes = ["Selecione..."] + sorted(["Preta", "Branca", "Prata", "Cinza", "Azul", "Dourada", "Rosa", "Vermelha", "Amarela", "Verde", "Roxa"]) + ["Outra"]
         cor_sel = st.selectbox(f"Cor (Item {i+1}):", cor_opcoes, index=0, key=f"cor_sel_{i}_{mk}")
         cor_cel = st.text_input(f"Qual cor? (Item {i+1})", key=f"cor_dig_{i}_{mk}") if cor_sel == "Outra" else cor_sel
 
         imei_cel = st.text_input(f"IMEI (Item {i+1}):", key=f"imei_{i}_{mk}")
         
-        # Capa sem pré seleção
-        tem_capa = st.radio(f"Capa? (Item {i+1})", ["Selecione...", "Sim", "Não"], index=0, horizontal=True, key=f"capa_{i}_{mk}")
+        # Capa com "Não" como padrão
+        tem_capa = st.radio(f"Capa? (Item {i+1})", ["Sim", "Não"], index=1, horizontal=True, key=f"capa_{i}_{mk}")
 
     st.markdown(f"**SIMCards - Item {i+1}**")
     sim_opcoes = sorted(["Vivo", "Tim", "Claro", "Oi", "Correios Cellular"]) + ["Outra", "Nenhum"]
 
     c_sim1, c_sim2 = st.columns(2)
     with c_sim1:
-        s1_sel = st.selectbox(f"Chip 1 (Item {i+1}):", sim_opcoes, index=sim_opcoes.index("Nenhum"), key=f"s1_sel_{i}_{mk}")
+        s1_sel = st.selectbox(f"SIMCard 1 (Item {i+1}):", sim_opcoes, index=sim_opcoes.index("Nenhum"), key=f"s1_sel_{i}_{mk}")
         s1_txt = st.text_input(f"Qual op? (1)", key=f"s1_dig_{i}_{mk}") if s1_sel == "Outra" else s1_sel
         iccid1 = st.text_input(f"ICCID 1:", key=f"icc1_{i}_{mk}")
     with c_sim2:
-        s2_sel = st.selectbox(f"Chip 2 (Item {i+1}):", sim_opcoes, index=sim_opcoes.index("Nenhum"), key=f"s2_sel_{i}_{mk}")
+        s2_sel = st.selectbox(f"SIMCard 2 (Item {i+1}):", sim_opcoes, index=sim_opcoes.index("Nenhum"), key=f"s2_sel_{i}_{mk}")
         s2_txt = st.text_input(f"Qual op? (2)", key=f"s2_dig_{i}_{mk}") if s2_sel == "Outra" else s2_sel
         iccid2 = st.text_input(f"ICCID 2:", key=f"icc2_{i}_{mk}")
 
     # Danos
     locais_opcoes = ["Tela (Display)", "Tampa traseira", "Lentes da câmera", "Botões", "Bordas/Laterais", "Película de proteção"]
-    locais_selecionados = st.multiselect(f"Avarias no Item {i+1}:", locais_opcoes, key=f"loc_{i}_{mk}")
+    locais_selecionados = st.multiselect(f"Onde há danos? (Item {i+1}):", locais_opcoes, key=f"loc_{i}_{mk}")
     danos_detalhes = {}
     for local in locais_selecionados:
         cd1, cd2 = st.columns(2)
@@ -205,12 +206,7 @@ for idx, ap in enumerate(dados_aparelhos):
     marca_final = ap['marca'].upper() if ap['marca'] != "Selecione..." else "[MARCA NÃO INFORMADA]"
     cor_final = ap['cor'].lower() if ap['cor'] != "Selecione..." else "[COR NÃO INFORMADA]"
     
-    if ap['capa'] == "Sim":
-        capa_str = "acompanha capa de proteção"
-    elif ap['capa'] == "Não":
-        capa_str = "não acompanha capa de proteção"
-    else:
-        capa_str = "[INFORMAÇÃO DA CAPA NÃO PREENCHIDA]"
+    capa_str = "acompanha capa de proteção" if ap['capa'] == "Sim" else "não acompanha capa de proteção"
         
     imei_str = f"IMEI {ap['imei']}" if ap['imei'].strip() else "IMEI não aparente"
     
@@ -234,7 +230,7 @@ txt_gerado += f"O(s) aparelho(s) foram enviados para extração de dados no Núc
 st.header("3. Edição e Fotos")
 texto_final = st.text_area("Texto final:", value=txt_gerado, height=350, key=f"edit_{mk}")
 
-# Upload de Fotos apenas (Câmera Removida)
+# Upload de Fotos apenas
 fotos_up = st.file_uploader("Carregar Fotos da Galeria:", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True, key=f"up_{mk}")
 if fotos_up:
     for f in fotos_up:
