@@ -166,7 +166,7 @@ for i in range(qtd_aparelhos):
         tem_capa = st.radio(f"Capa? (Item {i+1})", ["Sim", "Não"], index=1, horizontal=True, key=f"capa_{i}_{mk}")
 
     st.markdown(f"**SIMCards - Item {i+1}**")
-    sim_opcoes = ["Claro", "Vivo", "Tim", "Oi", "Correios Celular", "Outra", "Nenhum"]
+    sim_opcoes = ["Claro", "Vivo", "Tim", "Oi", "Outra", "Nenhum"]
 
     c_sim1, c_sim2 = st.columns(2)
     with c_sim1:
