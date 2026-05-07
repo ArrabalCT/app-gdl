@@ -11,18 +11,6 @@ import json
 from datetime import datetime, timedelta
 
 # --- Funções de Formatação do Word ---
-def adicionar_borda_inferior(paragraph):
-    p = paragraph._p
-    pPr = p.get_or_add_pPr()
-    pBdr = OxmlElement('w:pBdr')
-    bottom = OxmlElement('w:bottom')
-    bottom.set(qn('w:val'), 'single')
-    bottom.set(qn('w:sz'), '6')
-    bottom.set(qn('w:space'), '1')
-    bottom.set(qn('w:color'), 'auto')
-    pBdr.append(bottom)
-    pPr.append(pBdr)
-
 def adicionar_campo_numpages(paragraph):
     p = paragraph._p
     r1 = OxmlElement('w:r')
@@ -53,7 +41,6 @@ def adicionar_campo_numpages(paragraph):
     p.append(r5)
 
 def aplicar_marca_texto(run, cor):
-    # cores suportadas: green, red, yellow, etc
     rPr = run._r.get_or_add_rPr()
     highlight = OxmlElement('w:highlight')
     highlight.set(qn('w:val'), cor)
@@ -110,13 +97,13 @@ st.header("1. Cabeçalho e Identificação")
 
 col1, col2 = st.columns(2)
 with col1:
-    rep_input = st.text_input("Número REP:", key=f"rep_{mk}")
     bo_input = st.text_input("Número do BO:", key=f"bo_{mk}").upper()
+    rep_input = st.text_input("Número REP (Se houver):", key=f"rep_{mk}")
     investigado = st.text_input("Investigado (Opcional):", key=f"inv_{mk}")
     
 with col2:
-    rep_ano = st.text_input("Ano REP:", value="2026", key=f"rep_ano_{mk}")
     bo_ano = st.text_input("Ano do BO:", value="2026", key=f"ano_{mk}")
+    rep_ano = st.text_input("Ano REP:", value="2026", key=f"rep_ano_{mk}")
     data_selecionada = st.date_input("Data do Laudo:", format="DD/MM/YYYY", key=f"data_{mk}")
 
 meses = {1: 'janeiro', 2: 'fevereiro', 3: 'março', 4: 'abril', 5: 'maio', 6: 'junho', 7: 'julho', 8: 'agosto', 9: 'setembro', 10: 'outubro', 11: 'novembro', 12: 'dezembro'}
@@ -162,11 +149,9 @@ st.header("2. Materiais e Lacres (Por Item)")
 
 colL1, colL2 = st.columns(2)
 with colL1:
-    lacre_ent_geral = st.text_input("Lacre de Entrada Geral (Facultativo):", help="Se preencher aqui, servirá de base para os itens", key=f"le_geral_{mk}")
+    lacre_saida_delegacia = st.text_input("Lacre de Saída Delegacia:", help="Será copiado para o Lacre Saída (Devolvido) de todos os itens.", key=f"ls_geral_{mk}")
 with colL2:
-    lacre_saida_geral = st.text_input("Lacre de Saída Geral (Facultativo):", help="Se preencher aqui, servirá de base para os itens", key=f"ls_geral_{mk}")
-
-qtd_itens = st.number_input("Quantidade de Itens:", min_value=1, max_value=20, value=1, key=f"qtd_{mk}")
+    qtd_itens = st.number_input("Quantidade de Itens:", min_value=1, max_value=20, value=1, step=1, key=f"qtd_{mk}")
 
 dados_itens = []
 massa_total = 0.0
@@ -180,13 +165,14 @@ for i in range(qtd_itens):
     with ci3: res = st.selectbox(f"Resultado (Item {i+1}):", ["Positivo", "Negativo", "Inconclusivo"], key=f"res_{i}_{mk}")
     
     cm1, cm2, cm3 = st.columns(3)
-    with cm1: mb = st.number_input(f"Massa Bruta (g)", min_value=0.00, value=1.00, step=0.1, format="%.2f", key=f"mb_{i}_{mk}")
-    with cm2: ml = st.number_input(f"Massa Líquida (g)", min_value=0.00, value=1.00, step=0.1, format="%.2f", key=f"ml_{i}_{mk}")
-    with cm3: am = st.number_input(f"Amostra (g)", min_value=0.00, value=0.50, step=0.1, format="%.2f", key=f"am_{i}_{mk}")
+    # Step=None remove os botões de + e -
+    with cm1: mb = st.number_input(f"Massa Bruta (g)", min_value=0.00, value=1.00, format="%.2f", step=None, key=f"mb_{i}_{mk}")
+    with cm2: ml = st.number_input(f"Massa Líquida (g)", min_value=0.00, value=1.00, format="%.2f", step=None, key=f"ml_{i}_{mk}")
+    with cm3: am = st.number_input(f"Amostra (g)", min_value=0.00, value=2.00, format="%.2f", step=None, key=f"am_{i}_{mk}")
     
     cl1, cl2, cl3 = st.columns(3)
-    with cl1: le = st.text_input(f"Lacre Entrada", value=lacre_ent_geral, key=f"le_{i}_{mk}")
-    with cl2: ld = st.text_input(f"Lacre Saída (Devolvido)", value=lacre_saida_geral, key=f"ld_{i}_{mk}")
+    with cl1: le = st.text_input(f"Lacre Entrada", key=f"le_{i}_{mk}")
+    with cl2: ld = st.text_input(f"Lacre Saída (Devolvido)", value=lacre_saida_delegacia, key=f"ld_{i}_{mk}")
     with cl3: ls = st.text_input(f"Lacre Saída (CP - Amostra)", key=f"ls_{i}_{mk}")
 
     massa_total += mb
@@ -202,7 +188,6 @@ for i in range(qtd_itens):
 hora_lib = (datetime.now() - timedelta(minutes=10)).strftime("%H%M")
 cidade_export = "Guaratinguet" if cid_sel == "Guaratinguetá" else (cid_sel if cid_sel != "Selecione..." else "")
 
-# Ajuste de DP para o GDL ("01º D.P. LORENA" vira "01")
 dp_export = delegacia_selecionada
 if dp_export.startswith("01") or dp_export.startswith("02") or dp_export.startswith("03"):
     dp_export = dp_export[:2]
@@ -215,7 +200,7 @@ dados_exportacao = {
     "cidade": cidade_export,
     "dp": dp_export,
     "hora_liberacao": hora_lib,
-    "cidade_fato": cidade_export, # Assumindo a mesma para o script
+    "cidade_fato": cidade_export,
     "investigado": investigado,
     "endereco": endereco,
     "numero": numero,
@@ -226,7 +211,7 @@ dados_exportacao = {
 for ap in dados_itens:
     dados_exportacao["itens"].append({
         "substancia": ap['sub'], 
-        "massa": f"{ap['ml']:.2f}",
+        "massa": f"{ap['ml']:.2f}".replace(".", ","), # GDL usa vírgula
         "lacre_entrada": ap['le'],
         "lacre_saida": ap['ld']
     })
@@ -240,22 +225,42 @@ c1, c2, c3 = st.columns(3)
 with c1:
     if st.button("📄 GERAR LAUDO (.DOCX)", type="primary", use_container_width=True):
         doc = Document()
-        style = doc.styles['Normal']; style.font.name = 'Courier New'; style.font.size = Pt(10)
         
-        # --- CABEÇALHO SPTC (Idêntico ao Celular) ---
+        # Formatando o estilo geral para não ter espaços extras
+        style = doc.styles['Normal']
+        style.font.name = 'Courier New'
+        style.font.size = Pt(10)
+        style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        style.paragraph_format.space_after = Pt(0)
+        style.paragraph_format.space_before = Pt(0)
+        
+        # --- CABEÇALHO SPTC ---
         section = doc.sections[0]
         header = section.header
         for p in header.paragraphs: p.text = ""
         table = header.add_table(rows=1, cols=3, width=Cm(15.5))
         table.columns[0].width = table.columns[2].width = Cm(2.2); table.columns[1].width = Cm(11.1)
-        if os.path.exists("logo_ssp.png"): table.cell(0, 0).paragraphs[0].add_run().add_picture("logo_ssp.png", width=Cm(1.8))
+        
+        # Limpando espaços dos parágrafos da tabela
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    paragraph.paragraph_format.space_after = Pt(0)
+                    paragraph.paragraph_format.space_before = Pt(0)
+
+        p_left = table.cell(0, 0).paragraphs[0]; p_left.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        if os.path.exists("logo_ssp.png"): p_left.add_run().add_picture("logo_ssp.png", width=Cm(1.8))
+        
         p_c = table.cell(0, 1).paragraphs[0]; p_c.alignment = WD_ALIGN_PARAGRAPH.CENTER
         run_h1 = p_c.add_run("SECRETARIA DA SEGURANÇA PÚBLICA\nSUPERINTENDÊNCIA DA POLÍCIA TÉCNICO-CIENTÍFICA\n")
         run_h1.font.size = Pt(11)
         run_h2 = p_c.add_run("INSTITUTO DE CRIMINALÍSTICA\nNÚCLEO DE PERÍCIAS CRIMINALÍSTICAS DE SÃO JOSÉ DOS CAMPOS\nEQUIPE DE PERÍCIAS CRIMINALÍSTICAS DE GUARATINGUETÁ")
         run_h2.font.size = Pt(8)
-        if os.path.exists("logo_ic.png"): table.cell(0, 2).paragraphs[0].add_run().add_picture("logo_ic.png", width=Cm(1.8))
+        
+        p_right = table.cell(0, 2).paragraphs[0]; p_right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        if os.path.exists("logo_ic.png"): p_right.add_run().add_picture("logo_ic.png", width=Cm(1.8))
 
+        # --- IDENTIFICAÇÃO (BO / REP) ---
         if rep_input or bo_input:
             p_ident = doc.add_paragraph()
             p_ident.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -264,7 +269,7 @@ with c1:
             if bo_input: ident_text.append(f"BO {bo_input} / {bo_ano} - {delegacia_selecionada}")
             p_ident.add_run(" | ".join(ident_text))
 
-        # --- TEXTOS DO LAUDO (Baseado fielmente no VBA) ---
+        # --- TEXTOS DO LAUDO ---
         p_nat = doc.add_paragraph()
         run = p_nat.add_run("Natureza do Exame: "); run.bold = True
         p_nat.add_run("Constatação Provisória de Entorpecentes.")
@@ -275,7 +280,7 @@ with c1:
                      f"Dr. Ricardo Lopes Ortega, foi designado o Perito Criminal {perito_selecionado}, para proceder ao exame supracitado, "
                      f"em atendimento à requisição subscrita pelo Dr(a). {delegado_selecionado}, Delegado(a) de Polícia.")
         doc.add_paragraph(preambulo)
-        doc.add_paragraph("")
+        doc.add_paragraph("") # Pula linha
         
         p_mat = doc.add_paragraph()
         p_mat.add_run(f"Dos Materiais Recebidos e Examinados ({qtd_itens} Item(s)):").bold = True
@@ -283,8 +288,8 @@ with c1:
         
         p_mt = doc.add_paragraph()
         p_mt.add_run("Massa Bruta Apresentada: ").bold = True
-        p_mt.add_run(f"{massa_total:.2f} grama(s).".replace(".", ","))
-        doc.add_paragraph("")
+        p_mt.add_run(f"{massa_total:.2f} grama(s).".replace(".", ",")) # Ponto no final
+        doc.add_paragraph("") # Pula linha
 
         # Loop de Itens
         for i, item in enumerate(dados_itens):
@@ -297,16 +302,16 @@ with c1:
             
             p_massa = doc.add_paragraph()
             p_massa.add_run("Massa Bruta e/ou Quantidade: ").bold = True
-            p_massa.add_run(f"{item['mb']:.2f} grama(s). ".replace(".", ","))
+            p_massa.add_run(f"{item['mb']:.2f} grama(s). ".replace(".", ",")) # Ponto e espaço
             p_massa.add_run("Massa Líquida: ").bold = True
-            p_massa.add_run(f"{item['ml']:.2f} grama(s).".replace(".", ","))
-            doc.add_paragraph("")
+            p_massa.add_run(f"{item['ml']:.2f} grama(s).".replace(".", ",")) # Ponto no final
+            doc.add_paragraph("") # Pula linha
 
             # Amostra
             doc.add_paragraph(f"Uma amostra de {item['am']:.2f} grama(s) foi aqui retirada para análises. O material remanescente destas análises foi fechado sob o lacre de número {item['ls']} e será encaminhado ao IC - CP - São Jose dos Campos para a elaboração do respectivo Laudo Definitivo, complementar a este Laudo de Constatação.".replace(".", ","))
-            doc.add_paragraph("")
+            doc.add_paragraph("") # Pula linha
 
-            # Resultado com a lógica de Cores/Grifos do VBA
+            # Resultado
             p_res = doc.add_paragraph()
             if item['res'] == "Positivo":
                 if item['sub'] in ["Crack", "Cocaína"]:
@@ -314,7 +319,7 @@ with c1:
                     r_hl = p_res.add_run("DETECTADA presença da substância COCAÍNA")
                     aplicar_marca_texto(r_hl, "green")
                     p_res.add_run(", constante na lista F1 da Portaria SVS/MS 344/98 e atualizações posteriores.")
-                else: # Maconha, Tijolo, Haxixe, etc
+                else: 
                     p_res.add_run("A análise do material descrito fez o uso de teste colorimétrico sendo ")
                     r_hl = p_res.add_run("DETECTADA presença da substância TETRAHIDROCANNABINOL (THC)")
                     aplicar_marca_texto(r_hl, "green")
@@ -332,24 +337,28 @@ with c1:
                 aplicar_marca_texto(r_hl, "yellow")
                 p_res.add_run(", sendo necessárias análises mais complexas e morosas, incompatíveis com a rapidez demandada pelos exames de constatação. O resultado deste presente item seguirá em laudo definitivo.")
             
-            doc.add_paragraph("")
+            doc.add_paragraph("") # Pula linha
             doc.add_paragraph(f"O restante do item (material, invólucro(s) e lacre(s)) foi devolvido à autoridade policial requisitante nos termos das exigências legais, sob o lacre número {item['ld']}.")
-            doc.add_paragraph("")
+            doc.add_paragraph("") # Pula linha
 
-        # Fechamento
-        doc.add_paragraph("").alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        # Fechamento e Assinatura
         p_assinatura = doc.add_paragraph()
-        p_assinatura.paragraph_format.space_after = Pt(0)
         p_assinatura.add_run(perito_selecionado)
         p_assinatura.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         p_cargo = doc.add_paragraph()
         p_cargo.add_run("Perito Criminal Relator").bold = True
-        p_cargo.paragraph_format.space_after = Pt(0)
         p_cargo.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
         buf = io.BytesIO(); doc.save(buf); buf.seek(0)
-        nome_arquivo = f"Laudo_Ent_REP_{rep_input}_{rep_ano}.docx" if rep_input else f"Laudo_Ent_BO_{bo_input}_{bo_ano}.docx"
+        
+        # Nome do arquivo prioriza BO se não tiver REP
+        if bo_input:
+            nome_arquivo = f"Laudo_Ent_BO_{bo_input}_{bo_ano}.docx"
+        elif rep_input:
+            nome_arquivo = f"Laudo_Ent_REP_{rep_input}_{rep_ano}.docx"
+        else:
+            nome_arquivo = "Laudo_Entorpecentes.docx"
             
         st.download_button("⬇️ Salvar Laudo", buf, nome_arquivo, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
 
@@ -363,7 +372,7 @@ with c2:
     )
 
 with c3:
-    if st.button("🔄 Novo Laudo (Limpar Tudo)", type="secondary", use_container_width=True):
+    if st.button("🔄 Novo Laudo (Limpar)", type="secondary", use_container_width=True):
         st.session_state.clear()
         st.session_state['mk'] = mk + 1
         st.rerun()
