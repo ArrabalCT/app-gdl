@@ -69,12 +69,12 @@ if 'fotos' not in st.session_state: st.session_state['fotos'] = []
 if 'fotos_removidas' not in st.session_state: st.session_state['fotos_removidas'] = []
 if 'mk' not in st.session_state: st.session_state['mk'] = 0 
 if 'uploader_key' not in st.session_state: st.session_state['uploader_key'] = 0
-if 'item_mk' not in st.session_state: st.session_state['item_mk'] = 0 # Variável para o botão Novo Item
+if 'item_mk' not in st.session_state: st.session_state['item_mk'] = 0 
 mk = st.session_state['mk']
 ik = st.session_state['item_mk']
 
 # --- Listas de Dados ---
-delegados = ["", "Adilson Antonio Marcondes dos Santos", "Adriane Goncalves", "Anisio Galdioli", "Cesar Aparecido Vieira da Silva", "Daniel Souza Baptista de Castro", "Ernani Ronaldo Giannico Braga", "Fabio Germano Figueiredo Cabett", "Flavia Maria Rocha Rollo", "Francisco Sannini Neto", "Hugo Parreiras de Macedo", "Jose Marcelo Silva Hial", "Leonardo da Costa Ferreira", "Marcelo Vieira Cavalcante", "Mario Celso Ribeiro Senne", "Paulo Roberto Gruschka Castilho", "Paulo Sergio Barbosa", "Pedro Rossati", "Sergio Lucas Adler Guedes de Oliveira", "Vania Idalira Z. de Oliveira", "Outro..."]
+delegados = ["", "Adilson Antonio Marcondes dos Santos", "Adriane Goncalves", "Anisio Galdioli", "Cesar Aparecido Vieira da Silva", "Cristiane Correa de Freitas", "Daniel Souza Baptista de Castro", "Ernani Ronaldo Giannico Braga", "Fabio Germano Figueiredo Cabett", "Flavia Maria Rocha Rollo", "Francisco Sannini Neto", "Hugo Parreiras de Macedo", "Jose Marcelo Silva Hial", "Leonardo da Costa Ferreira", "Marcelo Vieira Cavalcante", "Mario Celso Ribeiro Senne", "Paulo Roberto Gruschka Castilho", "Paulo Sergio Barbosa", "Pedro Rossati", "Sergio Lucas Adler Guedes de Oliveira", "Vania Idalira Z. de Oliveira", "Outro..."]
 peritos = ["Alexandre Rabello de Oliveira", "Bruna Fernandes Nogueira", "Claude Thiago Arrabal", "Jéssica Pereira Gonçalves", "Júlia Soares Melo", "Luiz Fausto Prado Vasques", "Marcelo Mourão Dantas", "Márcio Steinmetz Soares", "Sarah Costa Teixeira", "Ruan Carvalho de Souza"]
 cidades = ["", "Aparecida", "Cachoeira Paulista", "Canas", "Cunha", "Guaratinguetá", "Lorena", "Piquete", "Potim", "Roseira", "Outra..."]
 dps_por_cidade = {
@@ -197,7 +197,20 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
                 
         st.write("**Exames Finais:**")
         eficaz_arma = st.selectbox("Eficácia:", ["", "Eficaz para efetuar disparos.", "Ineficaz para efetuar disparos."], key=f"eficaz_arma_{ik}")
-        residuografico = st.selectbox("Teste Residuográfico:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
+        
+        if eficaz_arma == "Ineficaz para efetuar disparos.":
+            motivo_ineficaz = st.selectbox("Motivo da Ineficácia:", [
+                "Apresenta falha no mecanismo de engatilhamento. O cão não atinge o retém, impossibilitando a posição de prontidão para o disparo.",
+                "Os sistemas de engatilhamento e desengatilhamento mostram-se funcionais; contudo, o mecanismo de percussão apresenta debilidade na mola (ou desgaste no percursor), resultando em energia de impacto insuficiente para a deformação plástica da espoleta (percussão) e consequente deflagração.",
+                "Outro..."
+            ], key=f"motivo_ineficaz_{ik}")
+            
+            if motivo_ineficaz == "Outro...":
+                motivo_ineficaz = st.text_input("Especifique o motivo:", key=f"motivo_ineficaz_outro_{ik}")
+            
+            eficaz_arma += f" {motivo_ineficaz}"
+
+        recenticidade = st.selectbox("Teste de Recenticidade:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
         lacre_saida_arma = st.text_input("Nº Lacre de Saída (Devolução da Arma):", key=f"lacre_saida_arma_{ik}")
         
         if st.button("Adicionar Arma"):
@@ -206,7 +219,7 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             st.session_state['itens_balistica'].append({
                 "lacre": lacre_atual, "lacre_saida": lacre_saida_arma, "categoria": "Arma de Fogo", "tipo": tipo_arma, "fabricante": fab_arma, 
                 "calibre": cal_arma, "estado": estado_arma, "caracteristicas": desc_fisica, "numeracao": desc_num, 
-                "metalo": metalo_txt, "eficacia": eficaz_arma, "residuografico": residuografico
+                "metalo": metalo_txt, "eficacia": eficaz_arma, "recenticidade": recenticidade
             })
             st.success("Arma adicionada!")
 
@@ -338,7 +351,13 @@ if len(st.session_state['itens_balistica']) > 0:
                 texto_exames_gerado += f"• **Características Físicas:** {item.get('caracteristicas', '')}\n"
                 texto_exames_gerado += f"• **Numeração:** {item.get('numeracao', '')}\n"
                 if item.get('metalo'): texto_exames_gerado += f"• **Exame Metalográfico:** {item.get('metalo', '')}\n"
-                if item.get('residuografico'): texto_exames_gerado += f"• **Residuográfico:** {item.get('residuografico', '')}\n"
+                
+                if item.get('recenticidade'): 
+                    if item.get('recenticidade') == "Não realizado.":
+                        texto_exames_gerado += f"• **Recenticidade:** Não realizado. Este exame deixou de ser realizado conforme justificativa técnica detalhada no tópico \"SOBRE A NÃO REALIZAÇÃO DO EXAME DE RECENTICIDADE DE DISPARO\" e em conformidade com a Ordem de Serviço IC nº 12/2026.\n"
+                    else:
+                        texto_exames_gerado += f"• **Recenticidade:** {item.get('recenticidade', '')}\n"
+
                 if item.get('eficacia'): texto_exames_gerado += f"• **Eficácia:** {item.get('eficacia', '')}\n"
                 if item.get('lacre_saida'): texto_exames_gerado += f"A arma foi acondicionada no lacre de saída nº {item.get('lacre_saida', '')}.\n"
             
@@ -449,6 +468,37 @@ if st.button("Criar Laudo (.docx)", type="primary", use_container_width=True):
                 p.add_run(parte[2:-2]).bold = True
             else:
                 p.add_run(parte)
+
+    # ANEXO DA JUSTIFICATIVA TÉCNICA (RECENTICIDADE)
+    if "SOBRE A NÃO REALIZAÇÃO DO EXAME DE RECENTICIDADE DE DISPARO" in exames_final:
+        doc.add_paragraph()
+        p_anexo_titulo = doc.add_paragraph()
+        run_anexo = p_anexo_titulo.add_run("ANEXO - JUSTIFICATIVA TÉCNICA"); run_anexo.bold = True; run_anexo.font.size = Pt(12)
+        p_anexo_titulo.alignment = WD_ALIGN_PARAGRAPH.CENTER
+
+        anexo_texto = """O exame de recenticidade de disparo de arma de fogo, baseado em resíduos de pólvora combusta depositados na face interna do cano da arma, deixou de ser realizado por se tratar de exame atualmente considerado obsoleto. Esta metodologia está sujeita a incidência de múltiplas variáveis que interferem no resultado deste exame, tanto para resultados positivos quanto negativos, a saber:
+
+RESULTADO POSITIVO: Nos casos de resultado positivo, as conclusões são limitadas pela natureza qualitativa do método, sendo este resultado considerado de natureza apenas orientativa, ou seja, não definitiva. As limitações do teste, exemplificadas nas hipóteses a seguir, reduzem seu potencial informativo: 
+- Hipótese I: O resultado positivo, por sua natureza qualitativa, não permite estabelecer a data exata de um suposto disparo recente; 
+- Hipótese II: Não permite diferenciar a ocorrência de disparo único e múltiplos disparos na janela temporal de detecção de nitritos. 
+
+RESULTADO NEGATIVO: A obtenção de um resultado negativo não necessariamente significa que um disparo com a arma de fogo em questão não foi realizado. Um resultado pode ser denominado falso negativo quando este decorre de fatores que prejudicam a detecção dos vestígios pesquisáveis e não da ausência do evento de disparo da arma de fogo. Como exemplos, podem ser consideradas as seguintes hipóteses de resultado falso negativo: 
+- Hipótese I: Acondicionamento inadequado das peças de exame considerando a aplicação de métodos químicos de detecção, afetando a estabilidade ou durabilidade dos vestígios de interesse; 
+- Hipótese II: Variabilidade na deposição de resíduos de pólvora combusta na face interna do cano em decorrência do uso de munição incomum ou de recarga; 
+- Hipótese III: Interferência das condições físico-químicas que o cano da arma apresentava antes do disparo; 
+- Hipótese IV: Limitações inerentes ao método utilizado nos testes e seu limiar mínimo de detecção; 
+- Hipótese V: Impossibilidade de identificar através do exame em questão a aplicação de métodos de mascaramento dos vestígios como limpeza e aplicação de substâncias químicas após o disparo; 
+- Hipótese VI: Características específicas da arma utilizada que possam ser desfavoráveis para a deposição de resíduos no cano. 
+
+A decisão pela não realização deste exame ocorre também em concordância com o determinado nos Procedimentos Operacionais Padrão (POPs) em Balística Forense (2024) da Secretaria Nacional de Segurança Pública - SENASP, que dispõe sobre a não recomendação deste tipo de teste na página 42 item 5.5 nos termos abaixo citados: 
+"5.5. Relativo à análise de recenticidade do disparo da arma de fogo. Com base na literatura, até o momento, não há método científico estabelecido para determinação de recenticidade ou de período em que uma arma de fogo produziu tiros, com precisão e aplicação para uso forense. Diante do exposto, não se recomenda a realização de tais exames." """
+        
+        for p_text in anexo_texto.split('\n'):
+            if p_text.strip():
+                if p_text.startswith("- "):
+                    doc.add_paragraph(p_text[2:], style='List Bullet')
+                else:
+                    doc.add_paragraph(p_text)
 
     # ILUSTRATIVO FOTOGRÁFICO
     if st.session_state['fotos']:
