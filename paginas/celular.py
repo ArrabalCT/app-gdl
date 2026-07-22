@@ -227,8 +227,15 @@ for idx, ap in enumerate(dados_aparelhos):
 
 txt_gerado += f"O(s) aparelho(s) foram enviados para extração de dados no Núcleo de Informática de São José dos Campos em lacre {lacre_saida if lacre_saida else '[INSERIR LACRE DE SAÍDA]'}. O resultado seguirá em laudo complementar."
 
+
+# --- CORREÇÃO AQUI: Força a atualização da caixa de texto quando você altera as opções em cima ---
+if st.session_state.get(f"track_{mk}") != txt_gerado:
+    st.session_state[f"edit_{mk}"] = txt_gerado
+    st.session_state[f"track_{mk}"] = txt_gerado
+
+
 st.header("3. Edição e Fotos")
-texto_final = st.text_area("Texto final:", value=txt_gerado, height=350, key=f"edit_{mk}")
+texto_final = st.text_area("Texto final:", height=350, key=f"edit_{mk}")
 
 # Upload de Fotos apenas
 fotos_up = st.file_uploader("Carregar Fotos da Galeria:", type=['jpg', 'jpeg', 'png'], accept_multiple_files=True, key=f"up_{mk}")
