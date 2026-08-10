@@ -136,7 +136,7 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
     
     # --- ARMA ---
     if tipo_item == "Arma de Fogo":
-        t_sel = st.selectbox("Tipo da Arma:", ["", "PISTOLA", "REVÓLVER", "ESPINGARDA", "CARABINA", "FUZIL", "GARRUCHA", "ARTESANAL", "Outra..."], key=f"t_sel_{ik}")
+        t_sel = st.selectbox("Tipo da Arma:", ["", "PISTOLA", "REVÓLVER", "ESPINGARDA", "CARABINA", "FUZIL", "GARRUCHA", "ARTESANAL", "ARMA DE PRESSÃO", "PISTOLA A GÁS", "REVÓLVER A GÁS", "Outra..."], key=f"t_sel_{ik}")
         tipo_arma = st.text_input("Especifique o tipo:", key=f"t_esp_{ik}") if t_sel == "Outra..." else t_sel
         fab_arma = st.text_input("Fabricante / Modelo:", key=f"fab_arma_{ik}")
         cal_arma = st.text_input("Calibre Nominal:", key=f"cal_arma_{ik}")
@@ -145,7 +145,7 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
         st.write("**Características Físicas e Componentes:**")
         
         detalhes_arma = ""
-        if t_sel in ["PISTOLA", "FUZIL", "CARABINA", "ARTESANAL"]:
+        if t_sel in ["PISTOLA", "FUZIL", "CARABINA", "ARTESANAL", "PISTOLA A GÁS"]:
             tem_carr = st.selectbox("Acompanha carregador?", ["", "Sim", "Não"], key=f"tem_carr_{ik}")
             if tem_carr == "Sim":
                 qtd_carr = st.number_input("Quantos carregadores?", min_value=1, value=1, key=f"qtd_carr_{ik}")
@@ -154,28 +154,30 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             elif tem_carr == "Não":
                 detalhes_arma = " Não acompanha carregador."
         
-        elif t_sel == "REVÓLVER":
+        elif t_sel in ["REVÓLVER", "REVÓLVER A GÁS"]:
             cap_tambor = st.number_input("Capacidade do tambor (munições):", min_value=1, max_value=12, value=6, key=f"cap_tambor_{ik}")
             tipo_abertura = st.selectbox("Abertura do tambor:", ["", "deslocamento lateral", "basculamento do cano", "janela lateral direita", "outra"], key=f"abertura_{ik}")
             abertura_txt = f" através de {tipo_abertura}" if tipo_abertura else ""
             detalhes_arma = f" Capacidade para {cap_tambor} munições{abertura_txt}."
             
-        elif t_sel in ["ESPINGARDA", "GARRUCHA"]:
+        elif t_sel in ["ESPINGARDA", "GARRUCHA", "ARMA DE PRESSÃO"]:
             num_canos = st.number_input("Número de canos:", min_value=1, max_value=4, value=1, key=f"num_canos_{ik}")
             num_gatilhos = st.number_input("Número de gatilhos:", min_value=1, max_value=4, value=1, key=f"num_gatilhos_{ik}")
             detalhes_arma = f" Possui {num_canos} cano(s) e {num_gatilhos} gatilho(s)."
             
-        c1, c2 = st.columns(2)
-        with c1:
-            cao_arma = st.selectbox("Cão:", ["Aparente", "Oculto", "Não se aplica"], key=f"cao_{ik}")
-            comp_cano = st.text_input("Comprimento do cano (Ex: 102 mm):", key=f"comp_cano_{ik}")
-        with c2:
-            alma_arma = st.selectbox("Alma do cano:", ["Raiada", "Lisa"], key=f"alma_{ik}")
-            if alma_arma == "Raiada":
-                num_raias = st.number_input("Número de raias:", min_value=1, value=6, key=f"raias_{ik}")
-                sentido_raias = st.selectbox("Sentido:", ["Dextrógiras", "Sinistrógiras"], key=f"sentido_{ik}")
-                alma_desc = f"raiada, com {num_raias} raias {sentido_raias.lower()}"
-            else: alma_desc = "lisa"
+        eh_pressao = t_sel in ["ARMA DE PRESSÃO", "PISTOLA A GÁS", "REVÓLVER A GÁS"]
+        if not eh_pressao:
+            c1, c2 = st.columns(2)
+            with c1:
+                cao_arma = st.selectbox("Cão:", ["Aparente", "Oculto", "Não se aplica"], key=f"cao_{ik}")
+                comp_cano = st.text_input("Comprimento do cano (Ex: 102 mm):", key=f"comp_cano_{ik}")
+            with c2:
+                alma_arma = st.selectbox("Alma do cano:", ["Raiada", "Lisa"], key=f"alma_{ik}")
+                if alma_arma == "Raiada":
+                    num_raias = st.number_input("Número de raias:", min_value=1, value=6, key=f"raias_{ik}")
+                    sentido_raias = st.selectbox("Sentido:", ["Dextrógiras", "Sinistrógiras"], key=f"sentido_{ik}")
+                    alma_desc = f"raiada, com {num_raias} raias {sentido_raias.lower()}"
+                else: alma_desc = "lisa"
         
         st.write("**Numeração e Identificação:**")
         num_status = st.selectbox("Situação da Numeração:", ["Íntegra", "Não aparente", "Suprimida", "Parcialmente visível", "Ausente"], key=f"num_status_{ik}")
@@ -202,6 +204,8 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             motivo_ineficaz = st.selectbox("Motivo da Ineficácia:", [
                 "Apresenta falha no mecanismo de engatilhamento. O cão não atinge o retém, impossibilitando a posição de prontidão para o disparo.",
                 "Os sistemas de engatilhamento e desengatilhamento mostram-se funcionais; contudo, o mecanismo de percussão apresenta debilidade na mola (ou desgaste no percursor), resultando em energia de impacto insuficiente para a deformação plástica da espoleta (percussão) e consequente deflagração.",
+                "Apresenta mola ruim/debilitada, impossibilitando a compressão adequada de ar/gás para disparo.",
+                "Faz o basculamento do cano, porém sem efetuar disparo (não engatilha/não retém a mola principal).",
                 "Outro..."
             ], key=f"motivo_ineficaz_{ik}")
             
@@ -210,11 +214,15 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             
             eficaz_arma += f" {motivo_ineficaz}"
 
-        recenticidade = st.selectbox("Teste de Recenticidade:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
+        recenticidade = ""
+        if not eh_pressao:
+            recenticidade = st.selectbox("Teste de Recenticidade:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
         lacre_saida_arma = st.text_input("Nº Lacre de Saída (Devolução da Arma):", key=f"lacre_saida_arma_{ik}")
         
         if st.button("Adicionar Arma"):
-            desc_fisica = f"Cão {cao_arma.lower()}, cano com {comp_cano}, alma {alma_desc}.{detalhes_arma}"
+            if not eh_pressao: desc_fisica = f"Cão {cao_arma.lower()}, cano com {comp_cano}, alma {alma_desc}.{detalhes_arma}"
+            else: desc_fisica = f"{detalhes_arma}".strip()
+            
             desc_num = num_arma if num_status == "Íntegra" else f"{num_status} ({tipo_sup})." if num_status != "Ausente" else "Ausente"
             st.session_state['itens_balistica'].append({
                 "lacre": lacre_atual, "lacre_saida": lacre_saida_arma, "categoria": "Arma de Fogo", "tipo": tipo_arma, "fabricante": fab_arma, 
