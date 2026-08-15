@@ -79,11 +79,11 @@ peritos = ["Alexandre Rabello de Oliveira", "Bruna Fernandes Nogueira", "Claude 
 cidades = ["", "Aparecida", "Cachoeira Paulista", "Canas", "Cunha", "Guaratinguetá", "Lorena", "Piquete", "Potim", "Roseira", "Outra..."]
 dps_por_cidade = {
     "": [""],
-    "Aparecida": ["", "DEL.POL.APARECIDA", "01º D.P. APARECIDA"],
+    "Aparecida": ["", "DEL.POL.APARECIDA"],
     "Canas": ["", "DEL.POL.CANAS"],
-    "Cachoeira Paulista": ["", "DEL.POL.CACHOEIRA PAULISTA", "01º D.P. CACHOEIRA PAULISTA"],
+    "Cachoeira Paulista": ["", "DEL.POL.CACHOEIRA PAULISTA"],
     "Cunha": ["", "DEL.POL.CUNHA"],
-    "Guaratinguetá": ["", "01º D.P. GUARATINGUETA", "02º D.P. GUARATINGUETA", "03º D.P. GUARATINGUETA", "DEL.SEC.GUARATINGUETA PLANTÃO", "DISE- DEL.SEC.GUARATINGUETA", "DDM GUARATINGUETA"],
+    "Guaratinguetá": ["", "01º D.P. GUARATINGUETA", "02º D.P. GUARATINGUETA", "03º D.P. GUARATINGUETA", "DEL.SEC.GUARATINGUETA", "DEL.SEC.GUARATINGUETA PLANTÃO", "DISE- DEL.SEC.GUARATINGUETA", "DDM GUARATINGUETA"],
     "Lorena": ["", "01º D.P. LORENA", "02º D.P. LORENA", "DEL.POL.LORENA", "DDM LORENA"],
     "Piquete": ["", "DEL.POL.PIQUETE"],
     "Potim": ["", "DEL.POL.POTIM"],
@@ -122,7 +122,7 @@ with colC2:
 st.markdown("---")
 st.header("2. Objetivo da Perícia")
 obj_padrao = st.multiselect("Selecione os objetivos:", 
-                            ["Fotografação", "Descrição", "Calibre", "Eficácia", "Recenticidade", "Potencialidade Lesiva"], 
+                            ["Fotografação", "Descrição", "Calibre", "Eficácia", "Recenticidade", "Potencialidade Lesiva", "Verificação de Semelhança (Simulacro)"], 
                             default=["Fotografação", "Descrição", "Calibre", "Eficácia"])
 obj_complemento = st.text_input("Complemento do Objetivo (Opcional):", placeholder="Ex: constatação de numeração suprimida...")
 
@@ -131,12 +131,12 @@ st.markdown("---")
 st.header("3. Adicionar Itens Apreendidos")
 
 with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
-    tipo_item = st.selectbox("O que você vai adicionar?", ["Arma de Fogo", "Munições", "Estojos", "Projétil"], key=f"tipo_item_{ik}")
+    tipo_item = st.selectbox("O que você vai adicionar?", ["Arma de Fogo", "Arma de Pressão (Mola/Gás)", "Simulacro", "Munições", "Estojos", "Projétil"], key=f"tipo_item_{ik}")
     lacre_atual = st.text_input("Nº do Lacre de Entrada (Ex: 00004041):", key=f"lacre_ent_{ik}")
     
-    # --- ARMA ---
+    # --- ARMA DE FOGO ---
     if tipo_item == "Arma de Fogo":
-        t_sel = st.selectbox("Tipo da Arma:", ["", "PISTOLA", "REVÓLVER", "ESPINGARDA", "CARABINA", "FUZIL", "GARRUCHA", "ARTESANAL", "ARMA DE PRESSÃO", "PISTOLA A GÁS", "REVÓLVER A GÁS", "Outra..."], key=f"t_sel_{ik}")
+        t_sel = st.selectbox("Tipo da Arma:", ["", "PISTOLA", "REVÓLVER", "ESPINGARDA", "CARABINA", "FUZIL", "GARRUCHA", "ARTESANAL", "Outra..."], key=f"t_sel_{ik}")
         tipo_arma = st.text_input("Especifique o tipo:", key=f"t_esp_{ik}") if t_sel == "Outra..." else t_sel
         fab_arma = st.text_input("Fabricante / Modelo:", key=f"fab_arma_{ik}")
         cal_arma = st.text_input("Calibre Nominal:", key=f"cal_arma_{ik}")
@@ -145,7 +145,7 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
         st.write("**Características Físicas e Componentes:**")
         
         detalhes_arma = ""
-        if t_sel in ["PISTOLA", "FUZIL", "CARABINA", "ARTESANAL", "PISTOLA A GÁS"]:
+        if t_sel in ["PISTOLA", "FUZIL", "CARABINA", "ARTESANAL"]:
             tem_carr = st.selectbox("Acompanha carregador?", ["", "Sim", "Não"], key=f"tem_carr_{ik}")
             if tem_carr == "Sim":
                 qtd_carr = st.number_input("Quantos carregadores?", min_value=1, value=1, key=f"qtd_carr_{ik}")
@@ -154,30 +154,28 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             elif tem_carr == "Não":
                 detalhes_arma = " Não acompanha carregador."
         
-        elif t_sel in ["REVÓLVER", "REVÓLVER A GÁS"]:
+        elif t_sel == "REVÓLVER":
             cap_tambor = st.number_input("Capacidade do tambor (munições):", min_value=1, max_value=12, value=6, key=f"cap_tambor_{ik}")
             tipo_abertura = st.selectbox("Abertura do tambor:", ["", "deslocamento lateral", "basculamento do cano", "janela lateral direita", "outra"], key=f"abertura_{ik}")
             abertura_txt = f" através de {tipo_abertura}" if tipo_abertura else ""
             detalhes_arma = f" Capacidade para {cap_tambor} munições{abertura_txt}."
             
-        elif t_sel in ["ESPINGARDA", "GARRUCHA", "ARMA DE PRESSÃO"]:
+        elif t_sel in ["ESPINGARDA", "GARRUCHA"]:
             num_canos = st.number_input("Número de canos:", min_value=1, max_value=4, value=1, key=f"num_canos_{ik}")
             num_gatilhos = st.number_input("Número de gatilhos:", min_value=1, max_value=4, value=1, key=f"num_gatilhos_{ik}")
             detalhes_arma = f" Possui {num_canos} cano(s) e {num_gatilhos} gatilho(s)."
             
-        eh_pressao = t_sel in ["ARMA DE PRESSÃO", "PISTOLA A GÁS", "REVÓLVER A GÁS"]
-        if not eh_pressao:
-            c1, c2 = st.columns(2)
-            with c1:
-                cao_arma = st.selectbox("Cão:", ["Aparente", "Oculto", "Não se aplica"], key=f"cao_{ik}")
-                comp_cano = st.text_input("Comprimento do cano (Ex: 102 mm):", key=f"comp_cano_{ik}")
-            with c2:
-                alma_arma = st.selectbox("Alma do cano:", ["Raiada", "Lisa"], key=f"alma_{ik}")
-                if alma_arma == "Raiada":
-                    num_raias = st.number_input("Número de raias:", min_value=1, value=6, key=f"raias_{ik}")
-                    sentido_raias = st.selectbox("Sentido:", ["Dextrógiras", "Sinistrógiras"], key=f"sentido_{ik}")
-                    alma_desc = f"raiada, com {num_raias} raias {sentido_raias.lower()}"
-                else: alma_desc = "lisa"
+        c1, c2 = st.columns(2)
+        with c1:
+            cao_arma = st.selectbox("Cão:", ["Aparente", "Oculto", "Não se aplica"], key=f"cao_{ik}")
+            comp_cano = st.text_input("Comprimento do cano (Ex: 102 mm):", key=f"comp_cano_{ik}")
+        with c2:
+            alma_arma = st.selectbox("Alma do cano:", ["Raiada", "Lisa"], key=f"alma_{ik}")
+            if alma_arma == "Raiada":
+                num_raias = st.number_input("Número de raias:", min_value=1, value=6, key=f"raias_{ik}")
+                sentido_raias = st.selectbox("Sentido:", ["Dextrógiras", "Sinistrógiras"], key=f"sentido_{ik}")
+                alma_desc = f"raiada, com {num_raias} raias {sentido_raias.lower()}"
+            else: alma_desc = "lisa"
         
         st.write("**Numeração e Identificação:**")
         num_status = st.selectbox("Situação da Numeração:", ["Íntegra", "Não aparente", "Suprimida", "Parcialmente visível", "Ausente"], key=f"num_status_{ik}")
@@ -204,32 +202,96 @@ with st.expander("➕ Clique aqui para adicionar um novo item", expanded=True):
             motivo_ineficaz = st.selectbox("Motivo da Ineficácia:", [
                 "Apresenta falha no mecanismo de engatilhamento. O cão não atinge o retém, impossibilitando a posição de prontidão para o disparo.",
                 "Os sistemas de engatilhamento e desengatilhamento mostram-se funcionais; contudo, o mecanismo de percussão apresenta debilidade na mola (ou desgaste no percursor), resultando em energia de impacto insuficiente para a deformação plástica da espoleta (percussão) e consequente deflagração.",
-                "Apresenta mola ruim/debilitada, impossibilitando a compressão adequada de ar/gás para disparo.",
                 "Faz o basculamento do cano, porém sem efetuar disparo (não engatilha/não retém a mola principal).",
                 "Outro..."
             ], key=f"motivo_ineficaz_{ik}")
-            
-            if motivo_ineficaz == "Outro...":
-                motivo_ineficaz = st.text_input("Especifique o motivo:", key=f"motivo_ineficaz_outro_{ik}")
-            
+            if motivo_ineficaz == "Outro...": motivo_ineficaz = st.text_input("Especifique o motivo:", key=f"motivo_ineficaz_outro_{ik}")
             eficaz_arma += f" {motivo_ineficaz}"
 
-        recenticidade = ""
-        if not eh_pressao:
-            recenticidade = st.selectbox("Teste de Recenticidade:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
+        recenticidade = st.selectbox("Teste de Recenticidade:", ["", "Negativo para disparo recente.", "Positivo para disparo recente.", "Não realizado."], key=f"resid_{ik}")
         lacre_saida_arma = st.text_input("Nº Lacre de Saída (Devolução da Arma):", key=f"lacre_saida_arma_{ik}")
         
-        if st.button("Adicionar Arma"):
-            if not eh_pressao: desc_fisica = f"Cão {cao_arma.lower()}, cano com {comp_cano}, alma {alma_desc}.{detalhes_arma}"
-            else: desc_fisica = f"{detalhes_arma}".strip()
-            
+        if st.button("Adicionar Arma de Fogo"):
+            desc_fisica = f"Cão {cao_arma.lower()}, cano com {comp_cano}, alma {alma_desc}.{detalhes_arma}"
             desc_num = num_arma if num_status == "Íntegra" else f"{num_status} ({tipo_sup})." if num_status != "Ausente" else "Ausente"
             st.session_state['itens_balistica'].append({
                 "lacre": lacre_atual, "lacre_saida": lacre_saida_arma, "categoria": "Arma de Fogo", "tipo": tipo_arma, "fabricante": fab_arma, 
                 "calibre": cal_arma, "estado": estado_arma, "caracteristicas": desc_fisica, "numeracao": desc_num, 
                 "metalo": metalo_txt, "eficacia": eficaz_arma, "recenticidade": recenticidade
             })
-            st.success("Arma adicionada!")
+            st.success("Arma de Fogo adicionada!")
+
+    # --- ARMA DE PRESSÃO (Mola/Gás) ---
+    elif tipo_item == "Arma de Pressão (Mola/Gás)":
+        t_sel = st.selectbox("Tipo da Arma de Pressão:", ["", "PISTOLA A GÁS (CO2/Green Gas)", "REVÓLVER A GÁS", "ESPINGARDA DE PRESSÃO (Mola)", "CARABINA DE PRESSÃO", "Outra..."], key=f"t_sel_pressao_{ik}")
+        tipo_arma = st.text_input("Especifique o tipo:", key=f"t_esp_pressao_{ik}") if t_sel == "Outra..." else t_sel
+        fab_arma = st.text_input("Fabricante / Modelo:", key=f"fab_arma_pressao_{ik}")
+        cal_arma = st.text_input("Calibre Nominal (Ex: 4.5mm, 6.0mm):", key=f"cal_arma_pressao_{ik}")
+        estado_arma = st.selectbox("Estado de Conservação:", ["Bom", "Regular", "Ruim"], key=f"estado_arma_pressao_{ik}")
+        
+        st.write("**Características Físicas e Componentes:**")
+        detalhes_arma = ""
+        if "PISTOLA" in t_sel or "CARABINA" in t_sel:
+            tem_carr = st.selectbox("Acompanha carregador (Magazine)?", ["", "Sim", "Não"], key=f"tem_carr_pressao_{ik}")
+            if tem_carr == "Sim":
+                detalhes_arma = " Acompanha carregador (magazine) próprio para acondicionamento de gás/esferas."
+            elif tem_carr == "Não":
+                detalhes_arma = " Não acompanha carregador (magazine)."
+        elif "REVÓLVER" in t_sel:
+            detalhes_arma = " Possui tambor articulado para acomodação dos projéteis/cápsulas."
+            
+        st.write("**Numeração:**")
+        num_status = st.selectbox("Situação da Numeração:", ["Íntegra", "Não aparente", "Suprimida", "Ausente"], key=f"num_status_pressao_{ik}")
+        num_arma = st.text_input("Numeração Lida:", key=f"num_lida_pressao_{ik}") if num_status == "Íntegra" else ""
+                
+        st.write("**Exames Finais:**")
+        eficaz_arma = st.selectbox("Eficácia:", ["", "Eficaz para expelir projéteis (esferas/chumbinhos).", "Ineficaz para expelir projéteis."], key=f"eficaz_arma_pressao_{ik}")
+        if eficaz_arma == "Ineficaz para expelir projéteis.":
+            motivo_ineficaz = st.selectbox("Motivo da Ineficácia:", [
+                "Apresenta mola ruim/debilitada, impossibilitando a compressão adequada de ar para disparo.",
+                "Apresenta vazamento no sistema de contenção de gás.",
+                "Faz o basculamento do cano, porém sem efetuar disparo (não engatilha/não retém a mola principal).",
+                "Ausência do carregador/magazine inviabiliza o teste prático de disparo (sistema de válvula integrado).",
+                "Outro..."
+            ], key=f"motivo_ineficaz_pressao_{ik}")
+            if motivo_ineficaz == "Outro...": motivo_ineficaz = st.text_input("Especifique o motivo:", key=f"motivo_ineficaz_outro_pressao_{ik}")
+            eficaz_arma += f" {motivo_ineficaz}"
+
+        lacre_saida_arma = st.text_input("Nº Lacre de Saída (Devolução da Arma):", key=f"lacre_saida_pressao_{ik}")
+        
+        if st.button("Adicionar Arma de Pressão"):
+            desc_num = num_arma if num_status == "Íntegra" else num_status
+            st.session_state['itens_balistica'].append({
+                "lacre": lacre_atual, "lacre_saida": lacre_saida_arma, "categoria": "Arma de Pressão (Mola/Gás)", "tipo": tipo_arma, "fabricante": fab_arma, 
+                "calibre": cal_arma, "estado": estado_arma, "caracteristicas": detalhes_arma.strip(), "numeracao": desc_num, 
+                "eficacia": eficaz_arma
+            })
+            st.success("Arma de Pressão adicionada!")
+
+    # --- SIMULACRO ---
+    elif tipo_item == "Simulacro":
+        t_sel = st.selectbox("Tipo de Simulacro (Réplica de):", ["", "PISTOLA", "REVÓLVER", "FUZIL", "ESPINGARDA", "SUBMETRALHADORA", "Outro..."], key=f"t_sel_simulacro_{ik}")
+        tipo_simulacro = st.text_input("Especifique o tipo:", key=f"t_esp_simulacro_{ik}") if t_sel == "Outra..." else t_sel
+        fab_simulacro = st.text_input("Fabricante / Marca / Inscrições (se houver):", key=f"fab_simulacro_{ik}")
+        material = st.selectbox("Material Predominante:", ["Polímero (Plástico)", "Metal", "Misto (Metal e Polímero)"], key=f"mat_simulacro_{ik}")
+        cor_simulacro = st.text_input("Cor do Simulacro (Ex: Preta, Prata, com ponteira laranja):", key=f"cor_simulacro_{ik}")
+        
+        st.write("**Capacidade de Ameaça e Semelhança:**")
+        ameaca_status = st.selectbox("Grau de semelhança com arma de fogo autêntica:", [
+            "",
+            "Apresenta grande semelhança morfológica com uma arma de fogo autêntica, possuindo potencial para incutir temor e ser utilizada para grave ameaça.",
+            "Apresenta semelhança razoável com arma de fogo. Apesar de detalhes que a distinguem mediante exame acurado, possui potencial para incutir temor em vítimas leigas, especialmente sob condições de baixa luminosidade ou tensão.",
+            "Apresenta baixa semelhança com arma de fogo real devido às suas dimensões reduzidas e/ou cores fantasiosas (ex: ponteira laranja destacada e inamovível), reduzindo significativamente seu poder de intimidação."
+        ], key=f"ameaca_simulacro_{ik}")
+
+        lacre_saida_simulacro = st.text_input("Nº Lacre de Saída (Devolução do Simulacro):", key=f"lacre_saida_simulacro_{ik}")
+        
+        if st.button("Adicionar Simulacro"):
+            st.session_state['itens_balistica'].append({
+                "lacre": lacre_atual, "lacre_saida": lacre_saida_simulacro, "categoria": "Simulacro", "tipo": tipo_simulacro, "fabricante": fab_simulacro, 
+                "material": material, "cor": cor_simulacro, "ameaca": ameaca_status
+            })
+            st.success("Simulacro adicionado!")
 
     # --- MUNIÇÕES ---
     elif tipo_item == "Munições":
@@ -368,6 +430,23 @@ if len(st.session_state['itens_balistica']) > 0:
 
                 if item.get('eficacia'): texto_exames_gerado += f"• **Eficácia:** {item.get('eficacia', '')}\n"
                 if item.get('lacre_saida'): texto_exames_gerado += f"A arma foi acondicionada no lacre de saída nº {item.get('lacre_saida', '')}.\n"
+                
+            elif item.get('categoria') == "Arma de Pressão (Mola/Gás)":
+                texto_exames_gerado += f"• **Tipo:** Instrumento de pressão, {item.get('tipo', '')}.\n"
+                texto_exames_gerado += f"• **Fabricante/Modelo:** {item.get('fabricante', '')}.\n"
+                texto_exames_gerado += f"• **Calibre:** {item.get('calibre', '')}.\n"
+                texto_exames_gerado += f"• **Estado de Conservação:** {item.get('estado', '')}.\n"
+                if item.get('caracteristicas'): texto_exames_gerado += f"• **Características Físicas:** {item.get('caracteristicas', '')}\n"
+                texto_exames_gerado += f"• **Numeração:** {item.get('numeracao', '')}\n"
+                if item.get('eficacia'): texto_exames_gerado += f"• **Eficácia:** {item.get('eficacia', '')}\n"
+                if item.get('lacre_saida'): texto_exames_gerado += f"O instrumento foi acondicionado no lacre de saída nº {item.get('lacre_saida', '')}.\n"
+
+            elif item.get('categoria') == "Simulacro":
+                texto_exames_gerado += f"• **Tipo:** Simulacro (réplica) de arma de fogo, tipo {item.get('tipo', '')}.\n"
+                if item.get('fabricante'): texto_exames_gerado += f"• **Inscrições/Marca:** {item.get('fabricante', '')}.\n"
+                texto_exames_gerado += f"• **Características:** Confeccionado predominantemente em {item.get('material', '').lower()}, na cor {item.get('cor', '').lower()}.\n"
+                if item.get('ameaca'): texto_exames_gerado += f"• **Verificação de Semelhança:** {item.get('ameaca', '')}\n"
+                if item.get('lacre_saida'): texto_exames_gerado += f"O simulacro foi acondicionado no lacre de saída nº {item.get('lacre_saida', '')}.\n"
             
             elif item.get('categoria') == "Munições":
                 txt_lote = f", lote {item.get('lote')}" if item.get('lote') else ""
@@ -436,7 +515,6 @@ if st.button("Criar Laudo (.docx)", type="primary", use_container_width=True):
 
     # CORPO
     p_nat = doc.add_paragraph()
-    # 1. NATUREZA ATUALIZADA AQUI:
     run = p_nat.add_run("1 – NATUREZA: Exame em Arma de Fogo e Munições"); run.bold = True; run.font.size = Pt(14)
     adicionar_borda_inferior(p_nat)
     
@@ -510,7 +588,6 @@ A decisão pela não realização deste exame ocorre também em concordância co
 
     # ILUSTRATIVO FOTOGRÁFICO
     if st.session_state['fotos']:
-        # 2. QUEBRA DE PÁGINA ANTES DO FOTOGRÁFICO:
         doc.add_page_break()
         p_foto_cabecalho = doc.add_paragraph()
         run_foto = p_foto_cabecalho.add_run("4 – DO ILUSTRATIVO FOTOGRÁFICO:"); run_foto.bold = True; run_foto.font.size = Pt(14)
@@ -547,11 +624,41 @@ A decisão pela não realização deste exame ocorre também em concordância co
 
     buf_doc = io.BytesIO(); doc.save(buf_doc); buf_doc.seek(0)
     
+    # DEFINIÇÃO DINÂMICA DO NOME DO ARQUIVO CONFORME O ITEM
+    desc_item_arquivo = "Balistica"
+    if len(st.session_state['itens_balistica']) > 0:
+        primeiro_item = st.session_state['itens_balistica'][0]
+        cat = primeiro_item.get('categoria', '')
+
+        if cat in ["Arma de Fogo", "Arma de Pressão (Mola/Gás)"]:
+            tipo = primeiro_item.get('tipo', 'Arma')
+            fab = primeiro_item.get('fabricante', '')
+            cal = primeiro_item.get('calibre', '')
+            desc_item_arquivo = f"{tipo} {fab} {cal}".strip()
+
+        elif cat == "Simulacro":
+            tipo = primeiro_item.get('tipo', '')
+            desc_item_arquivo = f"Simulacro {tipo}".strip()
+
+        elif cat == "Munições":
+            cal = primeiro_item.get('calibre', '')
+            desc_item_arquivo = f"Municoes {cal}".strip()
+
+        elif cat == "Estojos":
+            cal = primeiro_item.get('calibre', '')
+            desc_item_arquivo = f"Estojos {cal}".strip()
+
+        elif cat == "Projétil":
+            desc_item_arquivo = "Projetil"
+
+    # Sanitização para remover caracteres especiais do nome do arquivo
+    desc_item_arquivo = re.sub(r'[^\w\s-]', '', desc_item_arquivo).strip().replace(' ', '_')
+
     if rep_input:
-        nome_arquivo = f"Laudo_Balistica_REP_{rep_input}_{rep_ano}.docx"
+        nome_arquivo = f"Laudo_{desc_item_arquivo}_REP_{rep_input}_{rep_ano}.docx"
     elif bo_input:
-        nome_arquivo = f"Laudo_Balistica_BO_{bo_input}_{bo_ano}.docx"
+        nome_arquivo = f"Laudo_{desc_item_arquivo}_BO_{bo_input}_{bo_ano}.docx"
     else:
-        nome_arquivo = "Laudo_Balistica_Sem_BO_REP.docx"
+        nome_arquivo = f"Laudo_{desc_item_arquivo}_Sem_BO_REP.docx"
         
     st.download_button("⬇️ Descarregar Laudo Final", buf_doc, nome_arquivo, mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True)
